@@ -17,6 +17,86 @@ const char *usage = "Usage: %s [OPTIONS] <hostname>\n"
 "   -p <port>          port or service name\n"
 "   -P <ai_protocol>\n";
 
+typedef struct {
+	const char *name;
+	int value;
+} tuple;
+
+const tuple flag_table[] = {
+	{"PASSIVE", AI_PASSIVE},
+	{"CANONNAME", AI_CANONNAME},
+	{"NUMERICHOST",AI_NUMERICHOST},
+	{"V4MAPPED", AI_V4MAPPED},
+	{"ALL ",AI_ALL},
+	{"ADDRCONFIG",AI_ADDRCONFIG},
+	{"NUMERICSERV",AI_NUMERICSERV},
+	{NULL, 0}
+};
+
+const tuple type_table[] = {
+	{"STREAM" ,SOCK_STREAM},
+	{"DGRAM",	SOCK_DGRAM},
+	{"RAW", SOCK_RAW},
+	{"RDM", SOCK_RDM},
+	{"SEQPACKET",SOCK_SEQPACKET},
+	{"DCCP",SOCK_DCCP},
+	{"PACKET", SOCK_PACKET},
+	{"CLOEXEC",SOCK_CLOEXEC},
+	{"NONBLOCK",SOCK_NONBLOCK},
+	{NULL, 0}
+};
+
+const tuple proto_table[] = {
+	{"IP", IPPROTO_IP},
+	{"ICMP", IPPROTO_ICMP},
+	{"IGMP", IPPROTO_IGMP},
+	{"IPIP", IPPROTO_IPIP},
+	{"TCP", IPPROTO_TCP},
+	{"EGP", IPPROTO_EGP},
+	{"PUP", IPPROTO_PUP},
+	{"UDP", IPPROTO_UDP},
+	{"IDP", IPPROTO_IDP},
+	{"TP", IPPROTO_TP},
+	{"DCCP", IPPROTO_DCCP},
+	{"IPV6", IPPROTO_IPV6},
+	{"RSVP", IPPROTO_RSVP},
+	{"GRE", IPPROTO_GRE},
+	{"ESP", IPPROTO_ESP},
+	{"AH", IPPROTO_AH},
+	{"MTP", IPPROTO_MTP},
+	{"BEETPH", IPPROTO_BEETPH},
+	{"ENCAP", IPPROTO_ENCAP},
+	{"PIM", IPPROTO_PIM},
+	{"COMP", IPPROTO_COMP},
+	{"SCTP", IPPROTO_SCTP},
+	{"UDPLITE", IPPROTO_UDPLITE},
+	{"MPLS", IPPROTO_MPLS},
+	{"RAW", IPPROTO_RAW},
+	{NULL, 0}
+};
+
+const char *tostring(const tuple table[], int value)
+{
+    size_t i = 0;
+	while(table[i].name != NULL){
+		if(value == table[i].value)
+			return table[i].name;
+		i++;
+	}
+	return "UNKNOWN";
+}
+
+int tovalue(const tuple table[], const char *name)
+{
+	size_t i = 0;
+	while(table[i].name != NULL){
+		if(!strcasecmp(name, table[i].name))
+			return table[i].value;
+		i++;
+	}
+	return 0;
+}
+
 int main(int argc, char **argv) {
 
 
@@ -38,44 +118,13 @@ int main(int argc, char **argv) {
 				hint.ai_family = AF_INET6;
 				break;
 			case 'f':
-				if(!strcasecmp(optarg, "V4MAPPED"))
-					hint.ai_flags |= AI_V4MAPPED;
-				if(!strcasecmp(optarg, "ADDRCONFIG"))
-					hint.ai_flags |= AI_ADDRCONFIG;
-				if(!strcasecmp(optarg, "ALL"))
-					hint.ai_flags |= AI_ALL;
-				if(!strcasecmp(optarg, "CANONNAME"))
-					hint.ai_flags |= AI_CANONNAME;
-				if(!strcasecmp(optarg, "NUMERICHOST"))
-					hint.ai_flags |= AI_NUMERICHOST;
-				if(!strcasecmp(optarg, "NUMERICSERV"))
-					hint.ai_flags |= AI_NUMERICSERV;
-				if(!strcasecmp(optarg, "PASSIVE"))
-					hint.ai_flags |= AI_PASSIVE;
+                hint.ai_flags |= tovalue(flag_table, optarg);
 				break;
 			case 't':
-				if(!strcasecmp(optarg, "STREAM"))
-					hint.ai_socktype = SOCK_STREAM;
-				if(!strcasecmp(optarg, "DGRAM"))
-					hint.ai_socktype = SOCK_DGRAM;
-				if(!strcasecmp(optarg, "RAW"))
-					hint.ai_socktype = SOCK_RAW;
-				if(!strcasecmp(optarg, "SEQPACKET"))
-					hint.ai_socktype = SOCK_SEQPACKET;
+				hint.ai_socktype = tovalue(type_table, optarg);
 				break;
 			case 'P':
-				if(!strcasecmp(optarg, "IP"))
-					hint.ai_protocol = IPPROTO_IP;
-				if(!strcasecmp(optarg, "IPV6"))
-					hint.ai_protocol = IPPROTO_IPV6;
-				if(!strcasecmp(optarg, "ICMP"))
-					hint.ai_protocol = IPPROTO_ICMP;
-				if(!strcasecmp(optarg, "TCP"))
-					hint.ai_protocol = IPPROTO_TCP;
-				if(!strcasecmp(optarg, "UDP"))
-					hint.ai_protocol = IPPROTO_UDP;
-				if(!strcasecmp(optarg, "RAW"))
-					hint.ai_protocol = IPPROTO_RAW;
+				hint.ai_protocol = tovalue(proto_table, optarg);
 				break;
 			case 'p':
 				service = optarg;
@@ -101,44 +150,8 @@ int main(int argc, char **argv) {
 
 	next = result;
 	while(next != NULL){
-		switch(next->ai_socktype){
-			case SOCK_STREAM:
-				printf("STREAM\t");
-				break;
-			case SOCK_DGRAM:
-				printf("DGRAM\t");
-				break;
-			case SOCK_RAW:
-				printf("RAW\t");
-				break;
-			case SOCK_SEQPACKET:
-				printf("SEQPACKET\t");
-				break;
-			default:
-				printf("%d\t", next->ai_socktype);
-		}
-		switch(next->ai_protocol){
-			case IPPROTO_IP:
-				printf("IP\t");
-				break;
-			case IPPROTO_IPV6:
-				printf("IPV6\t");
-				break;
-			case IPPROTO_TCP:
-				printf("TCP\t");
-				break;
-			case IPPROTO_UDP:
-				printf("UDP\t");
-				break;
-			case IPPROTO_ICMP:
-				printf("ICMP\t");
-				break;
-			case IPPROTO_RAW:
-				printf("RAW\t");
-				break;
-			default:
-				printf("%d\t", next->ai_protocol);
-		}
+		printf("%s\t", tostring(type_table,next->ai_socktype));
+		printf("%s\t", tostring(proto_table,next->ai_protocol));
 		if(next->ai_addr->sa_family == AF_INET){
 			struct sockaddr_in *addr = (void *)next->ai_addr;
 			printf("%hu\t", ntohs(addr->sin_port));
