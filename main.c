@@ -40,9 +40,6 @@ const tuple type_table[] = {
 	{"RDM", SOCK_RDM},
 	{"SEQPACKET",SOCK_SEQPACKET},
 	{"DCCP",SOCK_DCCP},
-	{"PACKET", SOCK_PACKET},
-	{"CLOEXEC",SOCK_CLOEXEC},
-	{"NONBLOCK",SOCK_NONBLOCK},
 	{NULL, 0}
 };
 
